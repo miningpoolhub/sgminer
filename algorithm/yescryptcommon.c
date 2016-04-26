@@ -18,6 +18,29 @@
  * SUCH DAMAGE.
  */
 
+
+#ifndef thread_local
+# if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
+#  define thread_local _Thread_local
+# elif defined _WIN32 && ( \
+	defined _MSC_VER || \
+	defined __ICL || \
+	defined __DMC__ || \
+	defined __BORLANDC__)
+#  define thread_local __declspec(thread) 
+/* note that ICC (linux) and Clang are covered by __GNUC__ */
+# elif defined __GNUC__ || \
+	defined __SUNPRO_C || \
+	defined __xlC__
+#  define thread_local __thread
+# else
+#  error "Cannot define thread_local"
+# endif
+#endif
+
+
+
+
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -150,7 +173,7 @@ yescrypt_r(const yescrypt_shared_t * shared, yescrypt_local_t * local,
 		fflush(stdout);
 		return NULL; 
 		}
-		flags = decoded_flags;
+		flags = static_cast<yescrypt_flags_t>(decoded_flags);
 		if (*++src != '$')
 	    {	
         fflush(stdout);
@@ -263,7 +286,7 @@ yescrypt_gensalt_r(uint32_t N_log2, uint32_t r, uint32_t p,
 	size_t need;
 
 	if (p == 1)
-		flags &= ~YESCRYPT_PARALLEL_SMIX;
+		flags = static_cast<yescrypt_flags_t>(flags & ~YESCRYPT_PARALLEL_SMIX);
 
 	if (flags) {
 		if (flags & ~0x3f)
@@ -325,9 +348,9 @@ yescrypt_bsty(const uint8_t * passwd, size_t passwdlen,
     const uint8_t * salt, size_t saltlen, uint64_t N, uint32_t r, uint32_t p,
     uint8_t * buf, size_t buflen)
 {
-	static __thread int initialized = 0;
-	static __thread yescrypt_shared_t shared;
-	static __thread yescrypt_local_t local;
+	static thread_local int initialized = 0;
+	static thread_local yescrypt_shared_t shared;
+	static thread_local yescrypt_local_t local;
 
 //		static __declspec(thread) int initialized = 0;
 //		static __declspec(thread) yescrypt_shared_t shared;
@@ -347,7 +370,7 @@ yescrypt_bsty(const uint8_t * passwd, size_t passwdlen,
 		initialized = 1;
  	}
 	retval = yescrypt_kdf(&shared, &local,
-	    passwd, passwdlen, salt, saltlen, N, r, p, 0, YESCRYPT_FLAGS,
+		passwd, passwdlen, salt, saltlen, N, r, p, 0, static_cast<yescrypt_flags_t>(YESCRYPT_FLAGS),
 	    buf, buflen);		
 
 	return retval;
