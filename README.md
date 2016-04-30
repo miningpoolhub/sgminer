@@ -362,7 +362,8 @@ the above quotas in a configuration file they would be specified thus:
 
 ### No retry
 
-
+This strategy quit program itself when pool connection is not established or disconnected during mining.
+It is intended for multi-algo switching, should be not used for normal mining.
 
 
 

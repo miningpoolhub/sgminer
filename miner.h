@@ -289,6 +289,7 @@ enum pool_strategy {
   POOL_ROTATE,
   POOL_LOADBALANCE,
   POOL_BALANCE,
+  POOL_NORETRY,
 };
 
 typedef void (*_Voidfp)(void*);
