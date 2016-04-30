@@ -52,7 +52,7 @@ void blakecoinhash(void *state, const void *input)
 void blakecoin_midstate(struct work *work)
 {
   sph_blake256_context     ctx_blake;
-  uint32_t data[16];
+  uint32_t data[20];
 
   be32enc_vect(data, (const uint32_t *)work->data, 19);
 
