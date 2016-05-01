@@ -1673,7 +1673,7 @@ void write_config(const char *filename)
     case POOL_ROTATE:
       json_add(config, "rotate", json_sprintf("%d", opt_rotate_period));
       break;
-	case POOL_NORETRY:
+    case POOL_NORETRY:
       json_add(config, "no-retry", json_true());
       break;
     //default failover only
