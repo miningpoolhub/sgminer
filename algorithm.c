@@ -39,6 +39,7 @@
 #include "algorithm/credits.h"
 #include "algorithm/blake256.h"
 #include "algorithm/blakecoin.h"
+#include "algorithm/skeincoin.h"
 
 #include "compat.h"
 
@@ -935,30 +936,47 @@ static cl_int queue_pluck_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_un
 
 static cl_int queue_blake_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
 {
-	cl_kernel *kernel = &clState->kernel;
-	unsigned int num = 0;
-	cl_int status = 0;
-	cl_ulong le_target;
+  cl_kernel *kernel = &clState->kernel;
+  unsigned int num = 0;
+  cl_int status = 0;
+  cl_ulong le_target;
 
-	le_target = *(cl_ulong *)(blk->work->device_target + 24);
-	flip80(clState->cldata, blk->work->data);
-	status = clEnqueueWriteBuffer(clState->commandQueue, clState->CLbuffer0, true, 0, 80, clState->cldata, 0, NULL, NULL);
+  le_target = *(cl_ulong *)(blk->work->device_target + 24);
+  flip80(clState->cldata, blk->work->data);
+  status = clEnqueueWriteBuffer(clState->commandQueue, clState->CLbuffer0, true, 0, 80, clState->cldata, 0, NULL, NULL);
 
-	CL_SET_ARG(clState->outputBuffer);
-	CL_SET_ARG(blk->work->blk.ctx_a);
-	CL_SET_ARG(blk->work->blk.ctx_b);
-	CL_SET_ARG(blk->work->blk.ctx_c);
-	CL_SET_ARG(blk->work->blk.ctx_d);
-	CL_SET_ARG(blk->work->blk.ctx_e);
-	CL_SET_ARG(blk->work->blk.ctx_f);
-	CL_SET_ARG(blk->work->blk.ctx_g);
-	CL_SET_ARG(blk->work->blk.ctx_h);
+  CL_SET_ARG(clState->outputBuffer);
+  CL_SET_ARG(blk->work->blk.ctx_a);
+  CL_SET_ARG(blk->work->blk.ctx_b);
+  CL_SET_ARG(blk->work->blk.ctx_c);
+  CL_SET_ARG(blk->work->blk.ctx_d);
+  CL_SET_ARG(blk->work->blk.ctx_e);
+  CL_SET_ARG(blk->work->blk.ctx_f);
+  CL_SET_ARG(blk->work->blk.ctx_g);
+  CL_SET_ARG(blk->work->blk.ctx_h);
 
-	CL_SET_ARG(blk->work->blk.cty_a);
-	CL_SET_ARG(blk->work->blk.cty_b);
-	CL_SET_ARG(blk->work->blk.cty_c);
+  CL_SET_ARG(blk->work->blk.cty_a);
+  CL_SET_ARG(blk->work->blk.cty_b);
+  CL_SET_ARG(blk->work->blk.cty_c);
 
-	return status;
+  return status;
+}
+
+static cl_int queue_skeincoin_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
+{
+  cl_kernel *kernel = &clState->kernel;
+  unsigned int num = 0;
+  cl_int status = 0;
+  int i;
+  for (i = 0; i < 8; i++) {
+    status |= clSetKernelArg(*kernel, num++, sizeof(cl_ulong), blk->ulongMidstate + i);
+  }
+  for (i = 0; i < 3; i++) {
+    status |= clSetKernelArg(*kernel, num++, sizeof(cl_uint), blk->ulongData + i);
+  }
+  CL_SET_ARG(clState->outputBuffer);
+
+  return status;
 }
 
 static algorithm_settings_t algos[] = {
@@ -1052,6 +1070,8 @@ static algorithm_settings_t algos[] = {
   { "blake256r8",  ALGO_BLAKECOIN, "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x000000ffUL, 0, 128, 0, blakecoin_regenhash, blakecoin_midstate, blakecoin_prepare_work, queue_blake_kernel, sha256,   NULL },
   { "blake256r14", ALGO_BLAKE,     "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x00000000UL, 0, 128, 0, blake256_regenhash, blake256_midstate, blake256_prepare_work, queue_blake_kernel, gen_hash, NULL },
   { "vanilla",     ALGO_VANILLA,   "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x000000ffUL, 0, 128, 0, blakecoin_regenhash, blakecoin_midstate, blakecoin_prepare_work, queue_blake_kernel, gen_hash, NULL },
+
+  { "skeincoin", ALGO_SKEINCOIN, "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x000000ffUL, 0, 128, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, skeincoin_regenhash, NULL, skeincoin_prepare_work, queue_skeincoin_kernel, gen_hash, NULL },
 
   // Terminator (do not remove)
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }

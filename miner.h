@@ -1233,6 +1233,8 @@ typedef struct _dev_blk_ctx {
   cl_uint ctx_e; cl_uint ctx_f; cl_uint ctx_g; cl_uint ctx_h;
   cl_uint cty_a; cl_uint cty_b; cl_uint cty_c; cl_uint cty_d;
   cl_uint cty_e; cl_uint cty_f; cl_uint cty_g; cl_uint cty_h;
+  cl_ulong ulongMidstate[8];
+  cl_uint ulongData[3];
   cl_uint merkle; cl_uint ntime; cl_uint nbits; cl_uint nonce;
   cl_uint fW0; cl_uint fW1; cl_uint fW2; cl_uint fW3; cl_uint fW15;
   cl_uint fW01r; cl_uint fcty_e; cl_uint fcty_e2;
