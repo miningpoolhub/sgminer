@@ -717,6 +717,16 @@ static inline void flip80(void *dest_p, const void *src_p)
     dest[i] = swab32(src[i]);
 }
 
+static inline void flip112(void *dest_p, const void *src_p)
+{
+  uint32_t *dest = (uint32_t *)dest_p;
+  const uint32_t *src = (uint32_t *)src_p;
+  int i;
+
+  for (i = 0; i < 28; i++)
+    dest[i] = swab32(src[i]);
+}
+
 static inline void flip128(void *dest_p, const void *src_p)
 {
   uint32_t *dest = (uint32_t *)dest_p;
@@ -734,6 +744,26 @@ static inline void flip168(void *dest_p, const void *src_p)
 	int i;
 
 	for (i = 0; i < 42; i++)
+		dest[i] = swab32(src[i]);
+}
+
+static inline void flip180(void *dest_p, const void *src_p)
+{
+	uint32_t *dest = (uint32_t *)dest_p;
+	const uint32_t *src = (uint32_t *)src_p;
+	int i;
+
+	for (i = 0; i < 45; i++)
+		dest[i] = swab32(src[i]);
+}
+
+static inline void flip196(void *dest_p, const void *src_p)
+{
+	uint32_t *dest = (uint32_t *)dest_p;
+	const uint32_t *src = (uint32_t *)src_p;
+	int i;
+
+	for (i = 0; i < 49; i++)
 		dest[i] = swab32(src[i]);
 }
 
@@ -763,7 +793,15 @@ static inline void endian_flip128(void *dest_p, const void *src_p)
 }
 static inline void endian_flip168(void *dest_p, const void *src_p)
 {
-	flip168(dest_p, src_p);
+  flip168(dest_p, src_p);
+}
+static inline void endian_flip180(void *dest_p, const void *src_p)
+{
+  flip180(dest_p, src_p);
+}
+static inline void endian_flip196(void *dest_p, const void *src_p)
+{
+  flip196(dest_p, src_p);
 }
 
 #else
@@ -778,6 +816,14 @@ endian_flip128(void __maybe_unused *dest_p, const void __maybe_unused *src_p)
 }
 static inline void
 endian_flip168(void __maybe_unused *dest_p, const void __maybe_unused *src_p)
+{
+}
+static inline void
+endian_flip180(void __maybe_unused *dest_p, const void __maybe_unused *src_p)
+{
+}
+static inline void
+endian_flip196(void __maybe_unused *dest_p, const void __maybe_unused *src_p)
 {
 }
 #endif
@@ -1223,7 +1269,6 @@ extern char current_hash[68];
 extern double current_diff;
 extern double best_diff;
 extern struct timeval block_timeval;
-extern char *workpadding;
 
 //config options table
 extern struct opt_table opt_config_table[];
@@ -1233,8 +1278,11 @@ typedef struct _dev_blk_ctx {
   cl_uint ctx_e; cl_uint ctx_f; cl_uint ctx_g; cl_uint ctx_h;
   cl_uint cty_a; cl_uint cty_b; cl_uint cty_c; cl_uint cty_d;
   cl_uint cty_e; cl_uint cty_f; cl_uint cty_g; cl_uint cty_h;
+  cl_uint cty_i; cl_uint cty_j; cl_uint cty_k; cl_uint cty_l;
+  cl_uint cty_m; cl_uint cty_n; cl_uint cty_o; cl_uint cty_p;
   cl_ulong ulongMidstate[8];
   cl_uint ulongData[3];
+  
   cl_uint merkle; cl_uint ntime; cl_uint nbits; cl_uint nonce;
   cl_uint fW0; cl_uint fW1; cl_uint fW2; cl_uint fW3; cl_uint fW15;
   cl_uint fW01r; cl_uint fcty_e; cl_uint fcty_e2;
@@ -1445,7 +1493,7 @@ struct pool {
 #define GETWORK_MODE_GBT 'G'
 
 struct work {
-  unsigned char data[168];
+  unsigned char data[256];
   unsigned char midstate[32];
   unsigned char target[32];
   unsigned char hash[32];

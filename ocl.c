@@ -758,7 +758,11 @@ _clState *initCl(unsigned int gpu, char *name, size_t nameSize, algorithm_t *alg
   size_t buf1size;
   size_t buf3size;
   size_t buf2size;
-  size_t readbufsize = (algorithm->type == ALGO_CRE) ? 168 : 128;
+  size_t readbufsize = 128;
+  if (algorithm->type == ALGO_CRE) readbufsize = 168;
+  else if (algorithm->type == ALGO_DECRED) readbufsize = 192;
+  else if (algorithm->type == ALGO_LBRY) readbufsize = 112;
+  else if (algorithm->type == ALGO_PASCAL) readbufsize = 196;
 
   if (algorithm->rw_buffer_size < 0) {
     // calc buffer size for neoscrypt
