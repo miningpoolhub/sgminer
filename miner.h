@@ -289,6 +289,7 @@ enum pool_strategy {
   POOL_ROTATE,
   POOL_LOADBALANCE,
   POOL_BALANCE,
+  POOL_NORETRY,
 };
 
 typedef void (*_Voidfp)(void*);
@@ -1279,6 +1280,9 @@ typedef struct _dev_blk_ctx {
   cl_uint cty_e; cl_uint cty_f; cl_uint cty_g; cl_uint cty_h;
   cl_uint cty_i; cl_uint cty_j; cl_uint cty_k; cl_uint cty_l;
   cl_uint cty_m; cl_uint cty_n; cl_uint cty_o; cl_uint cty_p;
+  cl_ulong ulongMidstate[8];
+  cl_uint ulongData[3];
+  
   cl_uint merkle; cl_uint ntime; cl_uint nbits; cl_uint nonce;
   cl_uint fW0; cl_uint fW1; cl_uint fW2; cl_uint fW3; cl_uint fW15;
   cl_uint fW01r; cl_uint fcty_e; cl_uint fcty_e2;

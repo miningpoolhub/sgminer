@@ -44,6 +44,7 @@
 #include "algorithm/pascal.h"
 #include "algorithm/lbry.h"
 #include "algorithm/sibcoin.h"
+#include "algorithm/skeincoin.h"
 
 #include "compat.h"
 
@@ -1121,6 +1122,23 @@ static cl_int queue_lbry_kernel(struct __clState *clState, struct _dev_blk_ctx *
   CL_NEXTKERNEL_SET_ARG(clState->padbuffer8);
   CL_SET_ARG(clState->outputBuffer);
   CL_SET_ARG(le_target);
+  
+  return status;
+}
+
+static cl_int queue_skeincoin_kernel(_clState *clState, dev_blk_ctx *blk, __maybe_unused cl_uint threads)
+{
+  cl_kernel *kernel = &clState->kernel;
+  unsigned int num = 0;
+  cl_int status = 0;
+  int i;
+  for (i = 0; i < 8; i++) {
+    status |= clSetKernelArg(*kernel, num++, sizeof(cl_ulong), blk->ulongMidstate + i);
+  }
+  for (i = 0; i < 3; i++) {
+    status |= clSetKernelArg(*kernel, num++, sizeof(cl_uint), blk->ulongData + i);
+  }
+  CL_SET_ARG(clState->outputBuffer);
 
   return status;
 }
@@ -1229,6 +1247,8 @@ static algorithm_settings_t algos[] = {
   { "lbry", ALGO_LBRY, "", 1, 256, 256, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 2, 4 * 8 * 4194304, 0, lbry_regenhash, NULL, NULL, queue_lbry_kernel, gen_hash, NULL },
 
   { "pascal", ALGO_PASCAL, "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x0000ffffUL, 0, 0, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, pascal_regenhash, pascal_midstate, NULL, queue_pascal_kernel, NULL, NULL },
+
+  { "skeincoin", ALGO_SKEINCOIN, "", 1, 1, 1, 0, 0, 0xFF, 0xFFFFULL, 0x000000ffUL, 0, 128, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, skeincoin_regenhash, NULL, skeincoin_prepare_work, queue_skeincoin_kernel, gen_hash, NULL },
 
   // Terminator (do not remove)
   { NULL, ALGO_UNK, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
